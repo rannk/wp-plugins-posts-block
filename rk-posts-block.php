@@ -27,7 +27,7 @@ function posts_block_install() {
             `content` text NOT NULL,
             `addtime` int(10) unsigned NOT NULL,
             PRIMARY KEY (`id`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci";
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
     $wpdb->query($sql);
 }
 
@@ -82,11 +82,86 @@ function rk_block_posts_lists() {
     $action = $_REQUEST['action'];
     switch($action){
         case "form":
-            $html = include("view/form.php");
+            rk_block_form();
+            break;
+        case "post_form":
+            rk_post_form();
             break;
         default:
-            $html = include("view/lists.php");
+            rk_block_lists();
     }
+}
+
+function rk_block_lists() {
+    global $wpdb;
+    $limit_num = 20;
+    $page_n = ceil($_REQUEST['n']);
+    $page_n = ($page_n>1)?$page_n:1;
+    $start_num = ($page_n - 1) * $limit_num;
+
+    // 排序设置
+    $sort = ($_REQUEST['order'] == "asc")?"asc":"desc";
+    switch($_REQUEST['o_name']) {
+        case "id":
+            $sql_order = "order by id ".$sort;
+            break;
+        case "title":
+            $sql_order = "order by title ".$sort;
+            break;
+    }
+
+    $sql = "select * from " . $wpdb->base_prefix . "rk_posts_block";
+
+    include("view/lists.php");
+}
+
+/**
+ * 编辑添加表单
+ */
+function rk_block_form() {
+    global $wpdb;
+    $id = ceil($_REQUEST['id']);
+    if($id > 0) {
+        $sql = "select * from " . $wpdb->base_prefix . "rk_posts_block where id=$id";
+        $block_row = $wpdb->get_row($sql, ARRAY_A);
+    }
+
+    include("view/form.php");
+}
+
+function rk_post_form() {
+    global $wpdb;
+
+    $data['title'] = trim($_POST['title']);
+    $data['description'] = trim($_POST['description']);
+    $data['content'] = trim($_POST['content']);
+    $data['time'] = time();
+    $id = ceil($_POST['id']);
+
+    if($data['title'] == ""  || $data['content'] == ""){
+        $msg = "名称或者模板内容没有填写";
+        $go = "back";
+    }else {
+        foreach($data as $k => $v) {
+            $fields = $k . "='" . addslashes($v) . "',";
+        }
+
+        $fields = substr($fields, 0, -1);
+
+        $sql = "REPLACE " . $wpdb->base_prefix . "rk_posts_block set id=".$id.", " . $fields;
+
+        $r = $wpdb->query($sql);
+
+        if($r) {
+            $msg = "添加/编辑成功";
+            $go = "/wp-admin/edit.php?page=rk_block_posts_lists";
+        }else {
+            $msg = "数据保存错误";
+            $go = "back";
+        }
+
+    }
+    include("view/msg.php");
 }
 
 

@@ -1,10 +1,15 @@
+<div class="wrap">
+    <h1 class="wp-heading-inline">文章区块模板</h1>
+    <a href="/wp-admin/edit.php?page=rk_block_posts_lists&action=form" class="page-title-action">添加新模板</a>
+</div>
 <div id="col-container" class="wp-clearfix">
     <div class="col-wrap">
         <form id="posts-filter" method="post">
             <input type="hidden" name="taxonomy" value="post_tag">
             <input type="hidden" name="post_type" value="post">
 
-            <input type="hidden" id="_wpnonce" name="_wpnonce" value="07e054a20d"><input type="hidden" name="_wp_http_referer" value="/wp-admin/edit-tags.php?taxonomy=post_tag">	<div class="tablenav top">
+            <input type="hidden" id="_wpnonce" name="_wpnonce" value="07e054a20d"><input type="hidden" name="_wp_http_referer" value="/wp-admin/edit-tags.php?taxonomy=post_tag">
+            <div class="tablenav top">
 
                 <div class="alignleft actions bulkactions">
                     <label for="bulk-action-selector-top" class="screen-reader-text">选择批量操作</label><select name="action" id="bulk-action-selector-top">
@@ -23,16 +28,42 @@
             </div>
             <h2 class="screen-reader-text">标签列表</h2><table class="wp-list-table widefat fixed striped tags">
                 <thead>
-                <tr>
-                    <td id="cb" class="manage-column column-cb check-column"><label class="screen-reader-text" for="cb-select-all-1">全选</label><input id="cb-select-all-1" type="checkbox"></td><th scope="col" id="name" class="manage-column column-name column-primary sortable desc"><a href="http://www.wordpress.local/wp-admin/edit-tags.php?taxonomy=post_tag&amp;orderby=name&amp;order=asc"><span>名称</span><span class="sorting-indicator"></span></a></th><th scope="col" id="description" class="manage-column column-description sortable desc"><a href="http://www.wordpress.local/wp-admin/edit-tags.php?taxonomy=post_tag&amp;orderby=description&amp;order=asc"><span>图像描述</span><span class="sorting-indicator"></span></a></th><th scope="col" id="slug" class="manage-column column-slug sortable desc"><a href="http://www.wordpress.local/wp-admin/edit-tags.php?taxonomy=post_tag&amp;orderby=slug&amp;order=asc"><span>别名</span><span class="sorting-indicator"></span></a></th><th scope="col" id="posts" class="manage-column column-posts num sortable desc"><a href="http://www.wordpress.local/wp-admin/edit-tags.php?taxonomy=post_tag&amp;orderby=count&amp;order=asc"><span>总数</span><span class="sorting-indicator"></span></a></th>	</tr>
+                    <tr>
+                    <td id="cb" class="manage-column column-cb check-column">
+                        <label class="screen-reader-text" for="cb-select-all-1">全选</label><input id="cb-select-all-1" type="checkbox"></td>
+                    <th scope="col" id="name" class="manage-column column-id sortable desc">
+                        <a href="/wp-admin/edit.php?page=rk_block_posts_lists&o_name=id&order=asc"><span>ID</span><span class="sorting-indicator"></span></th>
+                    <th scope="col" id="description" class="manage-column sortable desc">
+                        <a href="/wp-admin/edit.php?page=rk_block_posts_lists&o_name=title&order=asc"><span>名称</span><span class="sorting-indicator"></span></a></th>
+                    <th scope="col" id="slug" class="manage-column">
+                        <span>描述</span></th>
+                    </tr>
                 </thead>
 
-                <tbody id="the-list" data-wp-lists="list:tag">
-                <tr class="no-items"><td class="colspanchange" colspan="5">未找到标签。</td></tr>	</tbody>
+                <tbody id="the-list">
+                <tr id="tag-1"><th scope="row" class="check-column">&nbsp;</th>
+                    <td class="name column-name has-row-actions column-primary" data-colname="名称">
+                        <strong><a class="row-title" href="" aria-label="“未分类”（编辑）">未分类</a></strong>
+                        <br><div class="hidden" id="inline_1">
+                            <div class="name">未分类</div>
+                            <div class="slug">uncategorized</div><div class="parent">0</div></div><div class="row-actions"><span class="edit"><a href="" aria-label="编辑“未分类”">编辑</a></td>
+                    <td class="description column-description" data-colname="名称">ffff</td>
+                    <td class="slug column-slug" data-colname="描述">uncategorized1</td>
+                    </tr>
+                <tr class="no-items"><td class="colspanchange" colspan="4">未找到模板。</td></tr>
+                </tbody>
 
                 <tfoot>
                 <tr>
-                    <td class="manage-column column-cb check-column"><label class="screen-reader-text" for="cb-select-all-2">全选</label><input id="cb-select-all-2" type="checkbox"></td><th scope="col" class="manage-column column-name column-primary sortable desc"><a href="http://www.wordpress.local/wp-admin/edit-tags.php?taxonomy=post_tag&amp;orderby=name&amp;order=asc"><span>名称</span><span class="sorting-indicator"></span></a></th><th scope="col" class="manage-column column-description sortable desc"><a href="http://www.wordpress.local/wp-admin/edit-tags.php?taxonomy=post_tag&amp;orderby=description&amp;order=asc"><span>图像描述</span><span class="sorting-indicator"></span></a></th><th scope="col" class="manage-column column-slug sortable desc"><a href="http://www.wordpress.local/wp-admin/edit-tags.php?taxonomy=post_tag&amp;orderby=slug&amp;order=asc"><span>别名</span><span class="sorting-indicator"></span></a></th><th scope="col" class="manage-column column-posts num sortable desc"><a href="http://www.wordpress.local/wp-admin/edit-tags.php?taxonomy=post_tag&amp;orderby=count&amp;order=asc"><span>总数</span><span class="sorting-indicator"></span></a></th>	</tr>
+                    <td id="cb" class="manage-column column-cb check-column">
+                        <label class="screen-reader-text" for="cb-select-all-1">全选</label><input id="cb-select-all-1" type="checkbox"></td>
+                    <th scope="col" id="name" class="manage-column column-id sortable desc">
+                        <a href="/wp-admin/edit.php?page=rk_block_posts_lists&o_name=id&order=asc"><span>ID</span><span class="sorting-indicator"></span></th>
+                    <th scope="col" id="description" class="manage-column sortable desc">
+                        <a href="/wp-admin/edit.php?page=rk_block_posts_lists&o_name=title&order=asc"><span>名称</span><span class="sorting-indicator"></span></a></th>
+                    <th scope="col" id="slug" class="manage-column">
+                        <span>描述</span></th>
+                </tr>
                 </tfoot>
 
             </table>
@@ -53,11 +84,5 @@
     <a class="last-page" href="http://www.wordpress.local/wp-admin/edit-tags.php?taxonomy=post_tag&amp;paged=0"><span class="screen-reader-text">尾页</span><span aria-hidden="true">»</span></a></span></div>
                 <br class="clear">
             </div>
-
-        </form>
-
-        <div class="form-wrap edit-term-notes">
-            <p>标签可以有选择性地转换成分类目录，请使用<a href="http://www.wordpress.local/wp-admin/import.php">标签到分类目录转换器</a>。</p>
-        </div>
     </div>
 </div>
