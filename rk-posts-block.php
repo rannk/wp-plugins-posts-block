@@ -1,7 +1,7 @@
 <?php
 /**
- * Plugin Name: posts block widget
- * Description: Display a listing of posts using the [block-posts] shortcode
+ * Plugin Name: Rannk Posts Block
+ * Description: Display a listing of posts using the [rk-pb] shortcode
  * Version: 1.0
  * Author: Rannk Deng
  *
@@ -16,9 +16,25 @@
  * @license http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  */
 
-add_shortcode( 'block-posts', 'block_display_posts_shortcode' );
+//插件启用时检测数据库
+register_activation_hook( __FILE__, 'posts_block_install');
+function posts_block_install() {
+    global $wpdb;
+    $sql = "CREATE TABLE IF NOT EXISTS `".$wpdb->base_prefix."rk_posts_block` (
+            `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+            `title` varchar(100) NOT NULL DEFAULT '',
+            `description` varchar(500) NOT NULL DEFAULT '',
+            `content` text NOT NULL,
+            `addtime` int(10) unsigned NOT NULL,
+            PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci";
+    $wpdb->query($sql);
+}
 
-function block_display_posts_shortcode($atts) {
+
+add_shortcode( 'rk-pb', 'rk_block_display_posts_shortcode' );
+
+function rk_block_display_posts_shortcode($atts) {
 
     $original_atts = $atts;
 
@@ -55,20 +71,21 @@ function block_display_posts_shortcode($atts) {
     return $layer;
 }
 
-add_action( 'admin_menu', 'boj_menuexample_create_menu' );
-function boj_menuexample_create_menu()
+add_action( 'admin_menu', 'rk_create_menu' );
+function rk_create_menu()
 {
-    global $page_hooks;
-    //deal with custom type!
-    $post_types = series_posttype_support();
-    foreach ($post_types as $post_type) {
-        $parent = 'edit.php';
-        if ($post_type != 'post') {
-            $parent .= '?post_type=' . $post_type;
-        }
-        $menu_slug = SERIES . '_bulk_edit_' . $post_type;
-        $hook = add_submenu_page($parent, "Posts Block", "Posts Block", series_set_options_cap(), $menu_slug, 'series_edition_page');
-        $page_hooks[$post_type] = $hook;
+    $parent = 'edit.php';
+    add_submenu_page($parent, "Posts Block", "Posts Block", "manage_options", "rk_block_posts_lists", 'rk_block_posts_lists');
+}
+
+function rk_block_posts_lists() {
+    $action = $_REQUEST['action'];
+    switch($action){
+        case "form":
+            $html = include("view/form.php");
+            break;
+        default:
+            $html = include("view/lists.php");
     }
 }
 
