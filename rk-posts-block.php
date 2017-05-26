@@ -26,6 +26,7 @@ function posts_block_install() {
             `description` varchar(500) NOT NULL DEFAULT '',
             `content` text NOT NULL,
             `addtime` int(10) unsigned NOT NULL,
+            `is_del` tinyint(4) NOT NULL DEFAULT '0',
             PRIMARY KEY (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
     $wpdb->query($sql);
@@ -41,17 +42,42 @@ function rk_block_display_posts_shortcode($atts) {
     $BP = new BlockPosts();
 
     $atts = shortcode_atts( array(
-        'author'               => '',
-        'category'             => ''
+        'author' => '',
+        'category' => '',
+        'id' => false,
+        'tag' => '',
+        'template_id' => '',
+        'template_title' => '',
+        'order' => 'DESC',
+        'orderby' => 'date',
+        'date_format' => '(n/j/Y)',
+        'posts_per_page' => '10',
     ), $atts, 'block-posts' );
 
     $category = sanitize_text_field( $atts['category'] );
     $date_format = sanitize_text_field( $atts['date_format'] );
+    $temp_id = $atts['template_id'];
+    $temp_title = $atts['template_title'];
+    $order = $atts['order'];
+    $orderby = $atts['orderby'];
+    $tag = sanitize_text_field( $atts['tag'] );
+    $id = $atts['id'];
+    $posts_per_page = intval( $atts['posts_per_page'] );
 
     // Set up initial query for post
     $args = array(
-        'category_name'       => $category
+        'category_name' => $category,
+        'order' => $order,
+        'orderby' => $orderby,
+        'posts_per_page' => $posts_per_page,
+        'tag' => $tag,
     );
+
+    // If Post IDs
+    if( $id ) {
+        $posts_in = array_map( 'intval', explode( ',', $id ) );
+        $args['post__in'] = $posts_in;
+    }
 
     $listing = new WP_Query( apply_filters( 'display_posts_shortcode_args', $args, $original_atts ));
 
@@ -63,10 +89,13 @@ function rk_block_display_posts_shortcode($atts) {
         $lists[$index]['post_link'] = get_permalink();
         $lists[$index]['thumbnail'] = get_the_post_thumbnail( get_the_ID(), false);
         $lists[$index]['date'] = get_the_date( $date_format );
+        $lists[$index]['author'] = get_the_author();
+        $lists[$index]['content'] = get_the_content();
         $index++;
     }
 
-    $layer = $BP->getBlock($lists, "");
+    $BP->setTemplate($temp_id, $temp_title);
+    $layer = $BP->getBlock($lists);
 
     return $layer;
 }
@@ -87,17 +116,58 @@ function rk_block_posts_lists() {
         case "post_form":
             rk_post_form();
             break;
+        case "delete":
+            rk_del_posts();
+            break;
         default:
             rk_block_lists();
     }
 }
 
+function rk_del_posts() {
+    global $wpdb;
+    $str = "";
+    $msg = "没有选择要删除的模板";
+
+    for($i=0;$i<count($_REQUEST['post']);$i++){
+        $v = $_REQUEST['post'][$i];
+        $v = ceil($v);
+        $str .= $v .",";
+    }
+
+    if($str) {
+        $str = substr($str, 0, -1);
+        $sql = "update " . $wpdb->base_prefix . "rk_posts_block set is_del=1 where id in ($str)";
+        if($wpdb->query($sql)){
+            $msg = "删除成功";
+        }else {
+            $msg = "数据操作失败";
+        }
+    }
+
+    $go = "/wp-admin/edit.php?page=rk_block_posts_lists";
+
+    include("view/msg.php");
+}
+
 function rk_block_lists() {
     global $wpdb;
-    $limit_num = 20;
+    $limit_num = 10;
     $page_n = ceil($_REQUEST['n']);
     $page_n = ($page_n>1)?$page_n:1;
+
+    $sql = "select * from " . $wpdb->base_prefix . "rk_posts_block where is_del=0 ";
+
+    $wpdb->get_results($sql);
+    $lists_num = $wpdb->num_rows;
+    $total_page = ceil($lists_num/$limit_num);
+
+    if($page_n > $total_page) {
+        $page_n = $total_page;
+    }
+
     $start_num = ($page_n - 1) * $limit_num;
+    $sql_limit = " limit $start_num, $limit_num";
 
     // 排序设置
     $sort = ($_REQUEST['order'] == "asc")?"asc":"desc";
@@ -108,9 +178,13 @@ function rk_block_lists() {
         case "title":
             $sql_order = "order by title ".$sort;
             break;
+        default:
+            $sql_order = "order by addtime desc";
     }
 
-    $sql = "select * from " . $wpdb->base_prefix . "rk_posts_block";
+    $lists = $wpdb->get_results($sql . $sql_order . $sql_limit, ARRAY_A);
+
+    $link = "/wp-admin/edit.php?page=rk_block_posts_lists&o_name=".$_REQUEST['o_name']."&order=".$_REQUEST['order'];
 
     include("view/lists.php");
 }
@@ -135,15 +209,16 @@ function rk_post_form() {
     $data['title'] = trim($_POST['title']);
     $data['description'] = trim($_POST['description']);
     $data['content'] = trim($_POST['content']);
-    $data['time'] = time();
+    $data['addtime'] = time();
     $id = ceil($_POST['id']);
 
     if($data['title'] == ""  || $data['content'] == ""){
         $msg = "名称或者模板内容没有填写";
         $go = "back";
     }else {
+        $fields = "";
         foreach($data as $k => $v) {
-            $fields = $k . "='" . addslashes($v) . "',";
+            $fields .= $k . "='" . addslashes($v) . "',";
         }
 
         $fields = substr($fields, 0, -1);
@@ -166,23 +241,46 @@ function rk_post_form() {
 
 
 class BlockPosts {
-    public function __constrcut() {
-        // Add the options page and menu item.
-        add_action( 'admin_menu', array( $this, 'add_plugin_admin_menu' ) );
-    }
+    var $template_content;
 
-    public function add_plugin_admin_menu() {
+    public function __construct() {
 
     }
 
-    public function getTemplate($tag = "") {
-        $t = '<ul>{circle}<li><a href="{post_link}">{post_title}</a></li>{/circle}</ul>';
+    public function setTemplate($id, $title) {
+        global $wpdb;
+
+        $id = ceil($id);
+        if($id > 0) {
+            $sql = "select * from " . $wpdb->base_prefix . "rk_posts_block where id=$id";
+            $row = $wpdb->get_row($sql, ARRAY_A);
+            if($row['id']) {
+                $this->template_content = stripslashes($row['content']);
+                return true;
+            }
+        }
+
+        if($title) {
+            $sql = "select * from " . $wpdb->base_prefix . "rk_posts_block where title='".addslashes($title)."'";
+            $row = $wpdb->get_row($sql, ARRAY_A);
+            if($row['id']) {
+                $this->template_content = stripslashes($row['content']);
+                return true;
+            }
+        }
+    }
+
+    public function getTemplate() {
+        if(!$this->template_content)
+            $t = '<ul>{circle}<li><a href="{post_link}">{post_title}</a></li>{/circle}</ul>';
+        else
+            $t = $this->template_content;
         return $t;
     }
 
 
-    public function getBlock($lists, $temp_tag) {
-        $t = $this->getTemplate($temp_tag);
+    public function getBlock($lists) {
+        $t = $this->getTemplate();
         $index = 0;
         while(strlen($t) > 0) {
             $s_p = stripos($t, '{circle}');
@@ -220,6 +318,13 @@ class BlockPosts {
 
         foreach($result_arr as $k => $v) {
             $t = str_replace('{CC_'.$k .'}', $v, $t);
+        }
+
+        $p = $lists[0];
+        if(count($p) > 0) {
+            foreach($p as $field => $value) {
+                $t = str_replace('{'.$field.'}', $value, $t);
+            }
         }
 
         return $t;
