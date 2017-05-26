@@ -17,7 +17,16 @@
             <tr class="form-field term-description-wrap">
                 <th scope="row"><label for="description">模板内容</label></th>
                 <td><textarea name="content"  rows="10" cols="50" class="large-text"><?=stripslashes($block_row['content'])?></textarea>
-                    <p class="description">描述只会在一部分主题中显示。</p></td>
+                    <p class="description">模板中可以用以下变量代替文章相关信息
+                    <br>
+                        <br>{circle} 文章列表循环的标志，文章循环区域用{circle}{/circle}
+                        <br>{post_title} 文章标题
+                        <br>{post_link} 文章链接地址
+                        <br>{date} 文章发布时间
+                        <br>{thumbnail} 文章缩略图
+                        <br>{author} 文章发布者
+                        <br>{content} 文章正文内容
+                    </p></td>
             </tr>
             </tbody>
         </table>
