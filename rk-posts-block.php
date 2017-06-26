@@ -52,7 +52,8 @@ function rk_block_display_posts_shortcode($atts) {
         'orderby' => 'date',
         'date_format' => '(n/j/Y)',
         'posts_per_page' => '10',
-        'post_type' => 'any'
+        'post_type' => 'any',
+        'term_id' => false,
     ), $atts, 'block-posts' );
 
     $category = sanitize_text_field( $atts['category'] );
@@ -64,6 +65,7 @@ function rk_block_display_posts_shortcode($atts) {
     $tag = sanitize_text_field( $atts['tag'] );
     $id = $atts['id'];
     $posts_per_page = intval( $atts['posts_per_page'] );
+    $term_id = intval( $atts['term_id'] );
     $post_type = $atts['post_type'];
 
     // Set up initial query for post
@@ -73,7 +75,8 @@ function rk_block_display_posts_shortcode($atts) {
         'orderby' => $orderby,
         'posts_per_page' => $posts_per_page,
         'tag' => $tag,
-        'post_type' => $post_type
+        'post_type' => $post_type,
+        'team_id' => $term_id
     );
 
     // If Post IDs
