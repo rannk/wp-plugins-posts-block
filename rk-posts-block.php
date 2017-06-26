@@ -53,7 +53,8 @@ function rk_block_display_posts_shortcode($atts) {
         'date_format' => '(n/j/Y)',
         'posts_per_page' => '10',
         'post_type' => 'any',
-        'term_id' => false,
+        'taxonomy' => '',
+        'term' => ''
     ), $atts, 'block-posts' );
 
     $category = sanitize_text_field( $atts['category'] );
@@ -67,6 +68,8 @@ function rk_block_display_posts_shortcode($atts) {
     $posts_per_page = intval( $atts['posts_per_page'] );
     $term_id = intval( $atts['term_id'] );
     $post_type = $atts['post_type'];
+    $taxonomy = sanitize_text_field( $atts['taxonomy'] );
+    $term = sanitize_text_field( $atts['term'] );
 
     // Set up initial query for post
     $args = array(
@@ -76,7 +79,9 @@ function rk_block_display_posts_shortcode($atts) {
         'posts_per_page' => $posts_per_page,
         'tag' => $tag,
         'post_type' => $post_type,
-        'team_id' => $term_id
+        'team_id' => $term_id,
+        'taxonomy' => $taxonomy,
+        'term' => $term
     );
 
     // If Post IDs
@@ -86,7 +91,7 @@ function rk_block_display_posts_shortcode($atts) {
     }
 
     $listing = new WP_Query( apply_filters( 'display_posts_shortcode_args', $args, $original_atts ));
-
+$listing->is_tax("dt_gallery_category");
     $index = 0;
     while ( $listing->have_posts() ){
         $listing->the_post();
