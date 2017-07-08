@@ -91,7 +91,7 @@ function rk_block_display_posts_shortcode($atts) {
     }
 
     $listing = new WP_Query( apply_filters( 'display_posts_shortcode_args', $args, $original_atts ));
-$listing->is_tax("dt_gallery_category");
+
     $index = 0;
     while ( $listing->have_posts() ){
         $listing->the_post();
@@ -102,6 +102,10 @@ $listing->is_tax("dt_gallery_category");
         $lists[$index]['date'] = get_the_date( $date_format );
         $lists[$index]['author'] = get_the_author();
         $lists[$index]['content'] = get_the_content();
+
+        if($taxonomy == "dt_gallery_category") {
+            $lists[$index]['items_json'] = getGalleryItemsSFormat(get_the_ID());
+        }
         $index++;
     }
 
@@ -161,6 +165,49 @@ function rk_del_posts() {
     include("view/msg.php");
 }
 
+function getGalleryItemsSFormat($id) {
+    global $wpdb;
+    $blog_id = get_current_blog_id();
+    $id=ceil($id);
+
+    if($id == 0)
+        return;
+
+    if($blog_id>1) {
+        $table_prefix = $wpdb->base_prefix .$blog_id ."_";
+    }else {
+        $table_prefix = $wpdb->base_prefix;
+    }
+
+    $sql = "select * from {$table_prefix}postmeta where post_id=$id and meta_key='_dt_album_media_items'";
+    $row = $wpdb->get_row($sql, ARRAY_A);
+    $value = $row['meta_value'];
+
+    if($value) {
+        $fl_array = preg_match("/\{(.*)\}/", $value, $arr);
+        $str_ids = "";
+        if(count($arr) > 0) {
+            $str_arr = explode(";", $arr[1]);
+            for($i=1;$i<count($str_arr);$i=$i+2) {
+                $post_id = ceil(str_replace("i:", "", $str_arr[$i]));
+                if($post_id) {
+                    $str_ids .= $post_id .",";
+                }
+            }
+
+            if($str_ids) {
+                $str_ids = substr($str_ids, 0, -1);
+
+                $sql = "select ID,post_title,guid  from {$table_prefix}posts where ID in ($str_ids)";
+                $lists = $wpdb->get_results($sql , ARRAY_A);
+                if($lists) {
+                    return json_encode($lists);
+                }
+            }
+        }
+    }
+
+}
 function rk_block_lists() {
     global $wpdb;
     $limit_num = 10;
